@@ -65,11 +65,11 @@ public class PicoMaven implements Closeable {
     /**
      * Download all dependencies from configured repositories
      *
-     * @return List of {@link Path}s pointing to dependencies stored on filesystem
+     * @return Map of {@link Dependency} and {@link Path}s pointing to them stored on filesystem
      * @throws InterruptedException thrown by {@link ExecutorService#invokeAll(Collection)}
      */
     @NotNull
-    public List<Path> downloadAll() throws InterruptedException {
+    public Map<Dependency, Path> downloadAll() throws InterruptedException {
         /* Iterate through all dependencies */
         for(Dependency dependency : dependencyList) {
             logger.debug("Trying to download dependency %s", dependency);
@@ -142,9 +142,10 @@ public class PicoMaven implements Closeable {
         executorService.invokeAll(downloadTasks);
 
         /* Convert to list */
-        return downloadedDependencies.stream()
-                .map(dep -> UrlUtils.formatLocalPath(downloadPath, dep))
-                .collect(Collectors.toList());
+        Map<Dependency, Path> result = new HashMap<>();
+        downloadedDependencies.forEach(dependency ->
+                result.put(dependency, UrlUtils.formatLocalPath(downloadPath, dependency)));
+        return result;
     }
 
     /**
